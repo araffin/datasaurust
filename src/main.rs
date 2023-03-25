@@ -6,6 +6,7 @@
 // The paper, video, and associated code and datasets can be found on the Autodesk Research website:
 // http://www.autodeskresearch.com/papers/samestats
 
+use clap::Parser;
 use gnuplot::AxesCommon;
 use gnuplot::Fix;
 use gnuplot::{Caption, Color, Figure, Graph};
@@ -91,9 +92,6 @@ fn min_distance_segment(point: (f32, f32), line: ((f32, f32), (f32, f32))) -> f3
     let x2x0 = x2 - x0;
     let y1y0 = y1 - y0;
     let y2y0 = y2 - y0;
-
-    // let x1x2 = x1 - x2;
-    // let y1y2 = y1 - y2;
 
     // If the point is inside the line segment, return the distance to the line
     if x1x0 * x2x0 < 0.0 || y1y0 * y2y0 < 0.0 {
@@ -257,9 +255,36 @@ fn ease_in_out_quad(t: f64) -> f64 {
     }
 }
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Name of the initial dataset
+    #[arg(short, long)]
+    dataset: String,
+
+    // Name of the output file with a default value
+    #[arg(short, long, default_value = "output")]
+    output: String,
+
+    /// Number of iterations
+    #[arg(short, long, default_value_t = 4000000)]
+    num_iterations: u32,
+
+    // define a boolean flag to enable plotting
+    #[arg(short, long, default_value_t = false)]
+    plot: bool,
+
+    // log interval
+    #[arg(short, long, default_value_t = 10000)]
+    log_interval: u32,
+}
+
 fn main() {
-    let num_iterations = 4000000;
-    let mut data = read_data("../seed_datasets/Datasaurus_data.csv");
+    // let args = Args::parse_args_default_or_exit();
+    let args = Args::parse();
+
+    let num_iterations = args.num_iterations;
+    let mut data = read_data(args.dataset.as_str());
 
     // Min/Max temperature
     let min_temperature = 0.0001;
@@ -267,8 +292,8 @@ fn main() {
 
     let decimals = 2;
 
-    // Print info every 10000 iterations
-    let log_interval = 10000;
+    // Print info every n iterations
+    let log_interval = args.log_interval;
 
     let initial_data = Data {
         x: data.x.clone(),
@@ -282,7 +307,7 @@ fn main() {
     };
 
     let mut fg = Figure::new();
-    let show_plot = true;
+    let show_plot = args.plot;
 
     for i in tqdm!(0..num_iterations) {
         // Compute the current temperature using a linear schedule
@@ -336,7 +361,7 @@ fn main() {
     }
 
     // Write the best data to a csv file
-    let mut output = std::fs::File::create("../logs/best_data.csv").unwrap();
+    let mut output = std::fs::File::create(format!("./logs/{}.csv", args.output)).unwrap();
     for (x, y) in best_data.x.iter().zip(best_data.y.iter()) {
         writeln!(output, "{},{}", x, y).unwrap();
     }

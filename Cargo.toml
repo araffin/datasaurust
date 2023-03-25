@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "4.1.13", features = ["derive"] }
 gnuplot = "0.0.37"
 kdam = "0.3.0"
 rand = "0.8.5"
