@@ -1,8 +1,18 @@
+// Rust implementation of the algorithm described in the paper:
+// Same Stats, Different Graphs: Generating Datasets with Varied Appearance and Identical Statistics
+// through Simulated Annealing
+// Justin Matejka and George Fitzmaurice
+// ACM CHI 2017
+// The paper, video, and associated code and datasets can be found on the Autodesk Research website:
+// http://www.autodeskresearch.com/papers/samestats
+
 use gnuplot::AxesCommon;
+use gnuplot::Fix;
 use gnuplot::{Caption, Color, Figure, Graph};
 use kdam::tqdm;
 use rand::Rng;
 use rand_distr::Normal;
+use std::io::Write;
 
 // Struct that's going to represent the data
 struct Data {
@@ -127,12 +137,8 @@ fn perturb_data(data: &Data, temperature: f32) -> Data {
     // if the temperature is high
     let allow_worse_objective = rand::thread_rng().gen_bool(temperature as f64);
 
-    // List of fixed segments that defines a triangle
-    let fixed_lines = vec![
-        ((0.0, 0.0), (50.0, 100.0)),
-        ((50.0, 100.0), (100.0, 100.0)),
-        ((100.0, 100.0), (0.0, 0.0)),
-    ];
+    // Segment defining a cross
+    let fixed_lines = vec![((20.0, 0.0), (100.0, 100.0)), ((20.0, 100.0), (100.0, 0.0))];
 
     // Compute the distance too all segments and
     // find the minimum distance
@@ -175,9 +181,9 @@ fn perturb_data(data: &Data, temperature: f32) -> Data {
 }
 
 // Function that reads the data from the csv file
-fn read_data() -> Data {
+fn read_data(filename: &str) -> Data {
     // Parse the csv file
-    let input = std::fs::read_to_string("../seed_datasets/Datasaurus_data.csv").unwrap();
+    let input = std::fs::read_to_string(filename).unwrap();
 
     let initial_data = input
         .lines()
@@ -211,8 +217,8 @@ fn read_data() -> Data {
 }
 
 fn main() {
-    let num_iterations = 1000000;
-    let mut data = read_data();
+    let num_iterations = 2000000;
+    let mut data = read_data("../seed_datasets/Datasaurus_data.csv");
 
     // Min/Max temperature
     let min_temperature = 0.0001;
@@ -235,7 +241,7 @@ fn main() {
     };
 
     let mut fg = Figure::new();
-    let show_plot = false;
+    let show_plot = true;
 
     for i in tqdm!(0..num_iterations) {
         // Compute the current temperature using a linear schedule
@@ -263,6 +269,9 @@ fn main() {
                 .set_legend(Graph(0.5), Graph(0.9), &[], &[])
                 .set_x_label("X", &[])
                 .set_y_label("Y", &[])
+                // set max and min values for the axes
+                .set_x_range(Fix(0.0), Fix(100.0))
+                .set_y_range(Fix(0.0), Fix(100.0))
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),
@@ -270,10 +279,19 @@ fn main() {
                 );
             fg.show_and_keep_running().unwrap();
         }
+
+        // Print the data statistic every 1000 iterations
+        // if i % log_interval == 0 {
+        //     let stats = compute_stats(&best_data);
+        //     println!(
+        //         "Iteration: {}, Temperature: {}, Mean: ({}, {}), Std: ({}, {})",
+        //         i, temperature, stats.0, stats.1, stats.2, stats.3,
+        //     );
+        // }
     }
 
     // Write the best data to a csv file
-    let mut output = std::fs::File::create("./logs/best_data.csv").unwrap();
+    let mut output = std::fs::File::create("../logs/best_data.csv").unwrap();
     for (x, y) in best_data.x.iter().zip(best_data.y.iter()) {
         writeln!(output, "{},{}", x, y).unwrap();
     }
