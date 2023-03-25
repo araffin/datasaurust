@@ -48,7 +48,7 @@ mpl.rcParams["font.size"] = 12.0
 mpl.rcParams["font.family"] = "monospace"
 mpl.rcParams["font.weight"] = "normal"
 mpl.rcParams["font.sans-serif"] = (
-    "Helveitca",
+    "Helvetica",
     "Bitstream Vera Sans",
     "Lucida Grande",
     "Verdana",
@@ -59,15 +59,15 @@ mpl.rcParams["font.sans-serif"] = (
     "sans-serif",
 )
 # mpl.rcParams["font.monospace"] = (
-#     "Decima Mono",
-#     "Bitstream Vera Sans Mono",
-#     "Andale Mono",
-#     "Nimbus Mono L",
-#     "Courier New",
-#     "Courier",
-#     "Fixed",
-#     "Terminal",
-#     "monospace",
+#     # "Decima Mono",
+#     # "Bitstream Vera Sans Mono",
+#     # "Andale Mono",
+#     # "Nimbus Mono L",
+#     # "Courier New",
+#     # "Courier",
+#     # "Fixed",
+#     # "Terminal",
+#     # "monospace",
 # )
 mpl.rcParams["text.color"] = "#222222"
 mpl.rcParams["pdf.fonttype"] = 42
@@ -87,11 +87,7 @@ line_shapes = [
 ]
 all_targets = list(line_shapes)
 all_targets.extend(["circle", "bullseye", "dots", "cat"])
-initial_datasets = ["dino", "rando", "slant", "big_slant"]
-
-cat_data = np.load("cat.npz")
-cat_x = cat_data["x"][::4]
-cat_y = cat_data["y"][::4]
+initial_datasets = ["dino", "rando", "slant", "big_slant", "uniform"]
 
 with open("cat_lines.pkl", "rb") as f:
     cat_lines = pickle.load(f)
@@ -115,6 +111,15 @@ def load_dataset(name="dino"):
         df = pd.read_csv("seed_datasets/less_angled_blob.csv")
         df = df[["x", "y"]]
         df = df.clip(1, 99)
+    elif name == "uniform":
+        n_points = 200
+        np.random.seed(42)
+        df = pd.DataFrame(
+            {
+                "x": np.random.uniform(low=25, high=90, size=(n_points,)),
+                "y": np.random.uniform(low=0, high=90, size=(n_points,)),
+            }
+        )
 
     return df.copy()
 
@@ -339,72 +344,7 @@ def average_location(pairs):
 #
 def get_points_for_shape(line_shape):
     lines = []
-    if line_shape == "x":
-        l1 = [[20, 0], [100, 100]]
-        l2 = [[20, 100], [100, 0]]
-        lines = [l1, l2]
-    elif line_shape == "h_lines":
-        lines = [[[0, y], [100, y]] for y in [10, 30, 50, 70, 90]]
-    elif line_shape == "v_lines":
-        lines = [[[x, 0], [x, 100]] for x in [10, 30, 50, 70, 90]]
-    elif line_shape == "wide_lines":
-        l1 = [[10, 0], [10, 100]]
-        l2 = [[90, 0], [90, 100]]
-        lines = [l1, l2]
-    elif line_shape == "high_lines":
-        l1 = [[0, 10], [100, 10]]
-        l2 = [[0, 90], [100, 90]]
-        lines = [l1, l2]
-    elif line_shape == "slant_up":
-        l1 = [[0, 0], [100, 100]]
-        l2 = [[0, 30], [70, 100]]
-        l3 = [[30, 0], [100, 70]]
-        l4 = [[50, 0], [100, 50]]
-        l5 = [[0, 50], [50, 100]]
-        lines = [l1, l2, l3, l4, l5]
-    elif line_shape == "slant_down":
-        l1 = [[0, 100], [100, 0]]
-        l2 = [[0, 70], [70, 0]]
-        l3 = [[30, 100], [100, 30]]
-        l4 = [[0, 50], [50, 0]]
-        l5 = [[50, 100], [100, 50]]
-        lines = [l1, l2, l3, l4, l5]
-    elif line_shape == "center":
-        cx = 54.26
-        cy = 47.83
-        l1 = [[cx, cy], [cx, cy]]
-        lines = [l1]
-    elif line_shape == "star":
-        star_pts = [
-            10,
-            40,
-            40,
-            40,
-            50,
-            10,
-            60,
-            40,
-            90,
-            40,
-            65,
-            60,
-            75,
-            90,
-            50,
-            70,
-            25,
-            90,
-            35,
-            60,
-        ]
-        pts = [star_pts[i : i + 2] for i in range(0, len(star_pts), 2)]
-        pts = [[p[0] * 0.8 + 20, 100 - p[1]] for p in pts]
-        pts.append(pts[0])
-        lines = [pts[i : i + 2] for i in range(0, len(pts) - 1, 1)]
-    elif line_shape == "down_parab":
-        curve = [[x, -(((x - 50) / 4) ** 2) + 90] for x in np.arange(0, 100, 3)]
-        lines = [curve[i : i + 2] for i in range(0, len(curve) - 1, 1)]
-    elif line_shape == "cat_lines":
+    if line_shape == "cat_lines":
         lines = cat_lines
 
     return lines
@@ -441,58 +381,7 @@ def perturb(
     while True:
         xm = i_xm + np.random.randn() * shake
         ym = i_ym + np.random.randn() * shake
-
-        if target == "circle":
-            # info for the circle
-            cx = 54.26
-            cy = 47.83
-            r = 30
-
-            dc1 = dist([df["x"][row], df["y"][row]], [cx, cy])
-            dc2 = dist([xm, ym], [cx, cy])
-
-            old_dist = abs(dc1 - r)
-            new_dist = abs(dc2 - r)
-
-        elif target == "bullseye":
-            # info for the bullseye
-            cx = 54.26
-            cy = 47.83
-            rs = [18, 37]
-
-            dc1 = dist([df["x"][row], df["y"][row]], [cx, cy])
-            dc2 = dist([xm, ym], [cx, cy])
-
-            old_dist = np.min([abs(dc1 - r) for r in rs])
-            new_dist = np.min([abs(dc2 - r) for r in rs])
-
-        elif target == "dots":
-            # create a grid of "cluster points" and move if you are getting closer
-            # (or are already close enough)
-            xs = [25, 50, 75]
-            ys = [20, 50, 80]
-
-            old_dist = np.min(
-                [
-                    dist([x, y], [df["x"][row], df["y"][row]])
-                    for x, y in itertools.product(xs, ys)
-                ]
-            )
-            new_dist = np.min(
-                [dist([x, y], [xm, ym]) for x, y in itertools.product(xs, ys)]
-            )
-        elif target == "cat":
-            # create a grid of "cluster points" and move if you are getting closer
-            # (or are already close enough)
-            xs = cat_x
-            ys = cat_y
-
-            old_dist = np.min(
-                [dist([x, y], [df["x"][row], df["y"][row]]) for x, y in zip(xs, ys)]
-            )
-            new_dist = np.min([dist([x, y], [xm, ym]) for x, y in zip(xs, ys)])
-
-        elif target in line_shapes:
+        if target in line_shapes:
             lines = get_points_for_shape(target)
 
             # calculate how far the point is from the closest one of these
