@@ -92,6 +92,11 @@ initial_datasets = ["dino", "rando", "slant", "big_slant", "uniform"]
 with open("cat_lines.pkl", "rb") as f:
     cat_lines = pickle.load(f)
 
+# Format for rust
+# def format_point(point):
+#   return f"({point[0]:.2f}, {point[1]:.2f})"
+# print(f"({format_point(line[0])}, {format_point(line[1])})")
+
 
 #
 # these are the initial datasets which are used in the paper

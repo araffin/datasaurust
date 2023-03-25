@@ -113,7 +113,7 @@ fn min_distance_segment(point: (f32, f32), line: ((f32, f32), (f32, f32))) -> f3
 
 // This function does one round of perturbation
 // using simulated annealing
-fn perturb_data(data: &Data, temperature: f32) -> Data {
+fn perturb_data(data: &Data, temperature: f64) -> Data {
     // Create a new data struct to store the perturbed data
     let mut new_data = Data {
         x: data.x.clone(),
@@ -135,10 +135,38 @@ fn perturb_data(data: &Data, temperature: f32) -> Data {
     // This is the simulated annealing step
     // Allow the point to move further away from the line
     // if the temperature is high
-    let allow_worse_objective = rand::thread_rng().gen_bool(temperature as f64);
+    let allow_worse_objective = rand::thread_rng().gen_bool(temperature);
 
-    // Segment defining a cross
-    let fixed_lines = vec![((20.0, 0.0), (100.0, 100.0)), ((20.0, 100.0), (100.0, 0.0))];
+    // Segments defining a cross
+    // let fixed_lines = vec![((20.0, 0.0), (100.0, 100.0)), ((20.0, 100.0), (100.0, 0.0))];
+
+    // Segments defining a cat
+    let fixed_lines = vec![
+        ((34.84, 87.62), (43.20, 73.93)),
+        ((43.20, 73.93), (56.88, 76.43)),
+        ((56.88, 76.43), (70.32, 73.57)),
+        ((70.32, 73.57), (81.84, 86.07)),
+        ((81.84, 86.07), (86.64, 56.79)),
+        ((86.64, 56.79), (85.92, 33.21)),
+        ((85.92, 33.21), (74.88, 10.00)),
+        ((74.88, 10.00), (60.24, 3.57)),
+        ((60.24, 3.57), (42.48, 7.50)),
+        ((42.48, 7.50), (35.04, 17.86)),
+        ((35.04, 17.86), (29.52, 31.07)),
+        ((29.52, 31.07), (28.56, 48.21)),
+        ((28.56, 48.21), (29.04, 68.93)),
+        ((29.04, 68.93), (34.84, 87.62)),
+        ((57.88, 36.55), (56.64, 27.86)),
+        ((56.64, 27.86), (50.16, 22.86)),
+        ((50.16, 22.86), (45.12, 28.21)),
+        ((57.16, 29.40), (60.96, 23.57)),
+        ((60.96, 23.57), (66.96, 23.93)),
+        ((66.96, 23.93), (70.56, 27.50)),
+        ((46.71, 58.59), (46.70, 54.19)),
+        ((46.70, 54.19), (46.71, 58.59)),
+        ((66.85, 57.97), (66.83, 54.19)),
+        ((66.83, 54.19), (66.85, 57.97)),
+    ];
 
     // Compute the distance too all segments and
     // find the minimum distance
@@ -216,13 +244,26 @@ fn read_data(filename: &str) -> Data {
     // fg.show().unwrap();
 }
 
+// Port from pytweening
+// A quadratic tween function that accelerates, reaches the midpoint, and then decelerates.
+// a "s-shaped" curve
+#[allow(dead_code)]
+fn ease_in_out_quad(t: f64) -> f64 {
+    if t < 0.5 {
+        2.0 * t.powi(2)
+    } else {
+        let tmp = t.powi(2) - 1.0;
+        -0.5 * (tmp * (tmp - 2.0) - 1.0)
+    }
+}
+
 fn main() {
-    let num_iterations = 2000000;
+    let num_iterations = 4000000;
     let mut data = read_data("../seed_datasets/Datasaurus_data.csv");
 
     // Min/Max temperature
     let min_temperature = 0.0001;
-    let max_temperature = 0.4;
+    let max_temperature = 0.5;
 
     let decimals = 2;
 
@@ -246,7 +287,11 @@ fn main() {
     for i in tqdm!(0..num_iterations) {
         // Compute the current temperature using a linear schedule
         let temperature = max_temperature
-            - (max_temperature - min_temperature) * (i as f32 / num_iterations as f32);
+            - (max_temperature - min_temperature) * (i as f64 / num_iterations as f64);
+
+        // Compute the current temperature using a quadratic schedule
+        // let temperature = min_temperature
+        //     + (max_temperature - min_temperature) * ease_in_out_quad(i as f64 / num_iterations as f64);
 
         // Perturb the data
         data = perturb_data(&best_data, temperature);
@@ -260,8 +305,7 @@ fn main() {
             };
         }
 
-        // Plot the data every 1000 iterations
-        // using gnuplot
+        // Plot the data using gnuplot
         if i % log_interval == 0 && show_plot {
             fg.clear_axes();
             fg.axes2d()
@@ -275,12 +319,13 @@ fn main() {
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),
-                    &[Caption("Best data"), Color("black")],
+                    &[Caption(""), Color("black")],
+                    // &[Caption("Best data"), Color("black")],
                 );
             fg.show_and_keep_running().unwrap();
         }
 
-        // Print the data statistic every 1000 iterations
+        // Print the data statistic every n iterations
         // if i % log_interval == 0 {
         //     let stats = compute_stats(&best_data);
         //     println!(
