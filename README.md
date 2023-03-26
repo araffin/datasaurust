@@ -17,5 +17,12 @@ Starting from Gaussian noise:
 cargo run --release -- -p -n 3000000 --decimals 2 --shape cat --allowed-distance 0.1 --gaussian
 ```
 
+Create video and gif (use `--save-plot`):
+```
+pip install moviepy ffmpeg-python
+
+python scripts/create_video.py logs/cat/ logs/cat.mp4
+```
+
 
 Note: The original datasets and python code comes from http://www.autodeskresearch.com/papers/samestats

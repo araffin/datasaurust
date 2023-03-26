@@ -252,6 +252,10 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     plot: bool,
 
+    // define a boolean flag to save plots
+    #[arg(short, long, default_value_t = false)]
+    save_plots: bool,
+
     // define a boolean flag to use uniform sampling
     #[arg(short, long, default_value_t = false)]
     uniform: bool,
@@ -368,6 +372,13 @@ fn main() {
     let mut fg = Figure::new();
     let show_plot = args.plot;
 
+    // Create log directory if it doesn't exist
+    let log_folder = format!("./logs/{}", args.shape);
+
+    if !std::path::Path::new(&log_folder).exists() {
+        std::fs::create_dir(&log_folder).unwrap();
+    }
+
     let fixed_lines = get_shape(args.shape.as_str());
 
     for i in tqdm!(0..num_iterations) {
@@ -411,7 +422,7 @@ fn main() {
             let indent = 11 + (decimals as usize);
 
             let label_x_pos = 0.32;
-            let label_y_pos = 0.94;
+            let label_y_pos = 0.95;
 
             fg.axes2d()
                 .set_title("Datasaurust", &[])
@@ -420,7 +431,7 @@ fn main() {
                 .set_y_label("Y", &[])
                 // set max and min values for the axes
                 .set_x_range(Fix(-20.0), Fix(130.0))
-                .set_y_range(Fix(-10.0), Fix(140.0))
+                .set_y_range(Fix(-10.0), Fix(145.0))
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),
@@ -511,7 +522,13 @@ fn main() {
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 );
 
-            fg.show_and_keep_running().unwrap();
+            if args.save_plots {
+                let frame_idx: u32 = i / log_interval;
+                let frame_name = format!("{}/{:0>6}.png", log_folder, frame_idx);
+                fg.save_to_png(&frame_name, 640, 480).unwrap();
+            } else {
+                fg.show_and_keep_running().unwrap();
+            }
         }
 
         // Print the data statistic every n iterations
@@ -522,13 +539,6 @@ fn main() {
         //         i, temperature, stats.0, stats.1, stats.2, stats.3,
         //     );
         // }
-    }
-
-    // Create log directory if it doesn't exist
-    let log_folder = format!("./logs/{}", args.shape);
-
-    if !std::path::Path::new(&log_folder).exists() {
-        std::fs::create_dir(&log_folder).unwrap();
     }
 
     // Write the best data to a csv file
