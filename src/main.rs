@@ -48,28 +48,36 @@ fn compute_stats(data: &Data) -> (f32, f32, f32, f32) {
     (mean_x, mean_y, std_x, std_y)
 }
 
+// Get the part that doesn't change in the number (until decimals)
+// and the one that does (after decimals)
+fn get_digits(number: f32, decimals: i32, n_digits: usize) -> (f32, i32) {
+    let constant_part = number * 10.0_f32.powi(decimals);
+    let constant_part = constant_part.floor() / 10.0_f32.powi(decimals);
+    let variable_part = number - constant_part;
+    let variable_part = variable_part * 10.0_f32.powi(decimals + n_digits as i32);
+    let digits = variable_part.floor();
+    (constant_part, digits as i32)
+}
+
+fn is_error_within_tolerance(stat1: f32, stat2: f32, decimals: i32) -> bool {
+    // Floor first to avoid rounding issue when computing the difference
+    let stat1 = (stat1 * 10.0_f32.powi(decimals)).floor();
+    let stat2 = (stat2 * 10.0_f32.powi(decimals)).floor();
+    let diff = (stat1 - stat2).abs();
+    diff == 0.0
+}
+
 // checks to see if the statistics are still within the acceptable bounds
 fn is_error_still_ok(data1: &Data, data2: &Data, decimals: i32) -> bool {
     let (mean_x1, mean_y1, std_x1, std_y1) = compute_stats(data1);
     let (mean_x2, mean_y2, std_x2, std_y2) = compute_stats(data2);
 
-    // Compute the difference between the two sets of statistics
-    let mean_x_diff = (mean_x1 - mean_x2).abs();
-    let mean_y_diff = (mean_y1 - mean_y2).abs();
-    let std_x_diff = (std_x1 - std_x2).abs();
-    let std_y_diff = (std_y1 - std_y2).abs();
+    let mean_x_ok = is_error_within_tolerance(mean_x1, mean_x2, decimals);
+    let mean_y_ok = is_error_within_tolerance(mean_y1, mean_y2, decimals);
+    let std_x_ok = is_error_within_tolerance(std_x1, std_x2, decimals);
+    let std_y_ok = is_error_within_tolerance(std_y1, std_y2, decimals);
 
-    // Round the values to the specified number of decimals
-    let mean_x_diff = (mean_x_diff * 10.0_f32.powi(decimals)).round() / 10.0_f32.powi(decimals);
-    let mean_y_diff = (mean_y_diff * 10.0_f32.powi(decimals)).round() / 10.0_f32.powi(decimals);
-    let std_x_diff = (std_x_diff * 10.0_f32.powi(decimals)).round() / 10.0_f32.powi(decimals);
-    let std_y_diff = (std_y_diff * 10.0_f32.powi(decimals)).round() / 10.0_f32.powi(decimals);
-
-    if mean_x_diff == 0.0 && mean_y_diff == 0.0 && std_x_diff == 0.0 && std_y_diff == 0.0 {
-        return true;
-    }
-
-    false
+    mean_x_ok && mean_y_ok && std_x_ok && std_y_ok
 }
 
 // Calculate the minimum distance between a point and a line segment
@@ -346,9 +354,13 @@ struct Args {
     #[arg(short, long, default_value_t = 10000)]
     log_interval: u32,
 
-    // Number of decimals
+    // Number of decimals that are constant
     #[arg(long, default_value_t = 2)]
     decimals: i32,
+
+    // For the plots, number of digits that change
+    #[arg(long, default_value_t = 4)]
+    n_digits: usize,
 }
 
 fn main() {
@@ -421,6 +433,8 @@ fn main() {
 
     // Print info every n iterations
     let log_interval = args.log_interval;
+    // For the plots, number of digits that change
+    let n_digits = args.n_digits;
 
     let initial_data = Data {
         x: data.x.clone(),
@@ -465,26 +479,22 @@ fn main() {
             // Display stats using labels
             let stats = compute_stats(&best_data);
 
-            // retrieve the digits after the decimal point from stats.0
-            // convert to string and then keep only the first 2 characters
-            let mean_x = stats.0.to_string()[0..4].to_string();
-            let x_digits = stats.0.to_string()[4..].to_string();
+            // retrieve the constant and variable part of the mean
+            let (mean_x, x_digits) = get_digits(stats.0, decimals, n_digits);
 
             // Do the same for the other stats
-            let mean_y = stats.1.to_string()[0..4].to_string();
-            let y_digits = stats.1.to_string()[4..].to_string();
+            let (mean_y, y_digits) = get_digits(stats.1, decimals, n_digits);
+            let (std_x, std_x_digits) = get_digits(stats.2, decimals, n_digits);
+            let (std_y, std_y_digits) = get_digits(stats.3, decimals, n_digits);
 
-            let std_x = stats.2.to_string()[0..4].to_string();
-            let std_x_digits = stats.2.to_string()[4..].to_string();
-
-            let std_y = stats.3.to_string()[0..4].to_string();
-            let std_y_digits = stats.3.to_string()[4..].to_string();
+            let n_decimals = decimals as usize;
+            let indent = 11 + (decimals as usize);
 
             let label_x_pos = 0.32;
             let label_y_pos = 0.94;
 
             fg.axes2d()
-                .set_title("Datasaurus", &[])
+                .set_title("Datasaurust", &[])
                 .set_legend(Graph(0.5), Graph(0.9), &[], &[])
                 .set_x_label("X", &[])
                 .set_y_label("Y", &[])
@@ -505,49 +515,77 @@ fn main() {
                     // &[Caption("Best data"), Color("black")],
                 )
                 .label(
-                    format!("Mean x: {}", mean_x).as_str(),
+                    format!("Mean x: {:.decimals$}", mean_x, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
-                    format!("{:12}{}", "", x_digits).as_str(),
+                    format!(
+                        "{:indent$}{:0<n_digits$}",
+                        "",
+                        x_digits,
+                        indent = indent,
+                        n_digits = n_digits
+                    )
+                    .as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Mean y: {}", mean_y).as_str(),
+                    format!("Mean y: {:.decimals$}", mean_y, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.05),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
-                    format!("{:12}{}", "", y_digits).as_str(),
+                    format!(
+                        "{:indent$}{:0<n_digits$}",
+                        "",
+                        y_digits,
+                        indent = indent,
+                        n_digits = n_digits
+                    )
+                    .as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.05),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Std  x: {}", std_x).as_str(),
+                    format!("Std  x: {:.decimals$}", std_x, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.10),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
-                    format!("{:12}{}", "", std_x_digits).as_str(),
+                    format!(
+                        "{:indent$}{:0<n_digits$}",
+                        "",
+                        std_x_digits,
+                        indent = indent,
+                        n_digits = n_digits
+                    )
+                    .as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.10),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Std  y: {}", std_y).as_str(),
+                    format!("Std  y: {:.decimals$}", std_y, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.15),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
-                    format!("{:12}{}", "", std_y_digits).as_str(),
+                    format!(
+                        "{:indent$}{:0<n_digits$}",
+                        "",
+                        std_y_digits,
+                        indent = indent,
+                        n_digits = n_digits
+                    )
+                    .as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos - 0.15),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
