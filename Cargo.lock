@@ -69,7 +69,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "datasaurus"
+name = "datasaurust"
 version = "0.1.0"
 dependencies = [
  "clap",
