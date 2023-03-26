@@ -288,6 +288,14 @@ struct Args {
     // TODO: make the rest deterministic
     #[arg(long, default_value_t = 42)]
     seed: u64,
+
+    // Min temperature
+    #[arg(long, default_value_t = 0.0001)]
+    min_temperature: f64,
+
+    // Max temperature
+    #[arg(long, default_value_t = 0.4)]
+    max_temperature: f64,
 }
 
 fn main() {
@@ -353,8 +361,8 @@ fn main() {
     }
 
     // Min/Max temperature
-    let min_temperature: f64 = 0.00001;
-    let max_temperature: f64 = 0.4;
+    let min_temperature: f64 = args.min_temperature;
+    let max_temperature: f64 = args.max_temperature;
 
     let decimals: i32 = args.decimals;
 

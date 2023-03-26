@@ -24,5 +24,10 @@ pip install moviepy ffmpeg-python
 python scripts/create_video.py logs/cat/ logs/cat.mp4
 ```
 
+From one shape to another:
+```
+cargo run --release -- -p -n 2000000 --decimals 1 --shape dog --allowed-distance 0.1 --log-interval 10000 -d logs/gaussian_cat/output.csv --save-plots
+```
+
 
 Note: The original datasets and python code comes from http://www.autodeskresearch.com/papers/samestats
