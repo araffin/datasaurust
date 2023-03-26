@@ -12,6 +12,7 @@ use gnuplot::Fix;
 use gnuplot::{Caption, Color, Figure, Graph};
 use kdam::tqdm;
 use rand::Rng;
+use rand::SeedableRng;
 use rand_distr::Normal;
 use std::io::Write;
 
@@ -41,8 +42,8 @@ fn compute_stats(data: &Data) -> (f32, f32, f32, f32) {
         std_y += (data.y[i] - mean_y).powi(2);
     }
 
-    std_x = std_x.sqrt();
-    std_y = std_y.sqrt();
+    std_x = (std_x / data.x.len() as f32).sqrt();
+    std_y = (std_y / data.y.len() as f32).sqrt();
 
     (mean_x, mean_y, std_x, std_y)
 }
@@ -391,7 +392,9 @@ fn main() {
         };
 
         // Sample n points using 2 Gaussians
-        let mut rng = rand::thread_rng();
+        // use a fixed seed for reproducibility
+        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
+
         let normal_x = Normal::new(mean_x, std_x).unwrap();
         let normal_y = Normal::new(mean_y, std_y).unwrap();
 
@@ -412,7 +415,7 @@ fn main() {
 
     // Min/Max temperature
     let min_temperature: f64 = 0.00001;
-    let max_temperature: f64 = 0.5;
+    let max_temperature: f64 = 0.4;
 
     let decimals: i32 = args.decimals;
 
@@ -459,14 +462,35 @@ fn main() {
         // Plot the data using gnuplot
         if i % log_interval == 0 && show_plot {
             fg.clear_axes();
+            // Display stats using labels
+            let stats = compute_stats(&best_data);
+
+            // retrieve the digits after the decimal point from stats.0
+            // convert to string and then keep only the first 2 characters
+            let mean_x = stats.0.to_string()[0..4].to_string();
+            let x_digits = stats.0.to_string()[4..].to_string();
+
+            // Do the same for the other stats
+            let mean_y = stats.1.to_string()[0..4].to_string();
+            let y_digits = stats.1.to_string()[4..].to_string();
+
+            let std_x = stats.2.to_string()[0..4].to_string();
+            let std_x_digits = stats.2.to_string()[4..].to_string();
+
+            let std_y = stats.3.to_string()[0..4].to_string();
+            let std_y_digits = stats.3.to_string()[4..].to_string();
+
+            let label_x_pos = 0.32;
+            let label_y_pos = 0.94;
+
             fg.axes2d()
                 .set_title("Datasaurus", &[])
                 .set_legend(Graph(0.5), Graph(0.9), &[], &[])
                 .set_x_label("X", &[])
                 .set_y_label("Y", &[])
                 // set max and min values for the axes
-                .set_x_range(Fix(0.0), Fix(100.0))
-                .set_y_range(Fix(0.0), Fix(100.0))
+                .set_x_range(Fix(-20.0), Fix(130.0))
+                .set_y_range(Fix(-10.0), Fix(140.0))
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),
@@ -479,7 +503,56 @@ fn main() {
                     ],
                     // &[Caption(""), Color("black")],
                     // &[Caption("Best data"), Color("black")],
+                )
+                .label(
+                    format!("Mean x: {}", mean_x).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
+                )
+                .label(
+                    format!("{:12}{}", "", x_digits).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
+                )
+                .label(
+                    format!("Mean y: {}", mean_y).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.05),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
+                )
+                .label(
+                    format!("{:12}{}", "", y_digits).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.05),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
+                )
+                .label(
+                    format!("Std  x: {}", std_x).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.10),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
+                )
+                .label(
+                    format!("{:12}{}", "", std_x_digits).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.10),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
+                )
+                .label(
+                    format!("Std  y: {}", std_y).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.15),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
+                )
+                .label(
+                    format!("{:12}{}", "", std_y_digits).as_str(),
+                    Graph(label_x_pos),
+                    Graph(label_y_pos - 0.15),
+                    &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 );
+
             fg.show_and_keep_running().unwrap();
         }
 
