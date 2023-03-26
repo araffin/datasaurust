@@ -4,7 +4,7 @@
 // Justin Matejka and George Fitzmaurice
 // ACM CHI 2017
 // The paper, video, and associated code and datasets can be found on the Autodesk Research website:
-// http://www.autodeskresearch.com/papers/samestats
+// https://www.autodesk.com/research/publications/same-stats-different-graphs
 // Interactive demo: https://bqplot.github.io/bqplot-gallery/
 
 use clap::Parser;
@@ -376,7 +376,7 @@ struct Args {
     decimals: i32,
 
     // For the plots, number of digits that change
-    #[arg(long, default_value_t = 4)]
+    #[arg(long, default_value_t = 5)]
     n_digits: usize,
 
     // Min distance allowed between point and line segments
@@ -542,7 +542,7 @@ fn main() {
                     // &[Caption("Best data"), Color("black")],
                 )
                 .label(
-                    format!("Mean x: {:.decimals$}", mean_x, decimals = n_decimals).as_str(),
+                    format!("X Mean: {:.decimals$}", mean_x, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
@@ -561,9 +561,9 @@ fn main() {
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Mean y: {:.decimals$}", mean_y, decimals = n_decimals).as_str(),
+                    format!("Y Mean: {:.decimals$}", mean_y, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.05),
+                    Graph(label_y_pos - 0.06),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
@@ -576,13 +576,13 @@ fn main() {
                     )
                     .as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.05),
+                    Graph(label_y_pos - 0.06),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Std  x: {:.decimals$}", std_x, decimals = n_decimals).as_str(),
+                    format!("X SD  : {:.decimals$}", std_x, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.10),
+                    Graph(label_y_pos - 0.12),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
@@ -595,13 +595,13 @@ fn main() {
                     )
                     .as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.10),
+                    Graph(label_y_pos - 0.12),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 )
                 .label(
-                    format!("Std  y: {:.decimals$}", std_y, decimals = n_decimals).as_str(),
+                    format!("Y SD  : {:.decimals$}", std_y, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.15),
+                    Graph(label_y_pos - 0.18),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
                 )
                 .label(
@@ -614,7 +614,7 @@ fn main() {
                     )
                     .as_str(),
                     Graph(label_x_pos),
-                    Graph(label_y_pos - 0.15),
+                    Graph(label_y_pos - 0.18),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("grey")],
                 );
 
