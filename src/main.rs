@@ -166,6 +166,66 @@ fn perturb_data(data: &Data, temperature: f64) -> Data {
         ((66.83, 54.19), (66.85, 57.97)),
     ];
 
+    // Segments defining a cat silhouette
+    // let fixed_lines = vec![
+    //     ((22.87, 46.36), (27.94, 63.86)),
+    //     ((27.94, 63.86), (38.84, 80.95)),
+    //     ((38.84, 80.95), (49.81, 93.42)),
+    //     ((49.81, 93.42), (59.57, 95.59)),
+    //     ((59.57, 95.59), (58.88, 85.30)),
+    //     ((58.88, 85.30), (56.08, 72.34)),
+    //     ((56.08, 72.34), (54.40, 68.27)),
+    //     ((67.25, 87.29), (80.10, 93.59)),
+    //     ((80.10, 93.59), (75.19, 72.98)),
+    //     ((75.19, 72.98), (78.51, 66.20)),
+    //     ((78.51, 66.20), (79.22, 43.04)),
+    //     ((79.22, 43.04), (80.13, 38.58)),
+    //     ((80.13, 38.58), (82.26, 34.38)),
+    //     ((82.26, 34.38), (81.62, 29.12)),
+    //     ((81.62, 29.12), (71.70, 18.02)),
+    //     ((71.70, 18.02), (56.09, 19.75)),
+    //     ((60.97, 81.55), (75.19, 72.98)),
+    //     ((59.56, 19.27), (61.48, 1.01)),
+    // ];
+
+    // Segments defining a dog
+    // let fixed_lines = vec![
+    //     ((33.94, 68.38), (32.23, 59.31)),
+    //     ((32.23, 59.31), (31.99, 43.60)),
+    //     ((31.99, 43.60), (34.82, 31.32)),
+    //     ((34.82, 31.32), (40.61, 22.52)),
+    //     ((40.61, 22.52), (50.18, 17.21)),
+    //     ((50.18, 17.21), (63.24, 17.60)),
+    //     ((63.24, 17.60), (74.58, 24.78)),
+    //     ((74.58, 24.78), (79.28, 35.03)),
+    //     ((79.28, 35.03), (82.28, 33.21)),
+    //     ((82.28, 33.21), (87.30, 35.58)),
+    //     ((87.30, 35.58), (89.49, 43.97)),
+    //     ((89.49, 43.97), (89.47, 57.12)),
+    //     ((89.47, 57.12), (85.84, 70.72)),
+    //     ((85.84, 70.72), (76.61, 82.35)),
+    //     ((76.61, 82.35), (63.18, 87.43)),
+    //     ((63.18, 87.43), (40.34, 86.04)),
+    //     ((40.34, 86.04), (28.44, 72.76)),
+    //     ((28.44, 72.76), (23.65, 57.93)),
+    //     ((23.65, 57.93), (23.18, 42.47)),
+    //     ((23.18, 42.47), (26.20, 36.53)),
+    //     ((26.20, 36.53), (30.63, 33.14)),
+    //     ((30.63, 33.14), (34.53, 33.71)),
+    //     ((56.60, 43.65), (56.22, 35.58)),
+    //     ((56.22, 35.58), (50.38, 29.80)),
+    //     ((50.38, 29.80), (43.65, 31.80)),
+    //     ((43.65, 31.80), (41.89, 39.84)),
+    //     ((56.22, 35.58), (61.84, 29.71)),
+    //     ((61.84, 29.71), (67.63, 30.86)),
+    //     ((67.63, 30.86), (70.33, 35.56)),
+    //     ((70.33, 35.56), (71.07, 41.55)),
+    //     ((45.03, 60.05), (45.16, 54.23)),
+    //     ((67.52, 59.27), (67.52, 54.31)),
+    //     ((79.28, 35.03), (80.61, 55.40)),
+    //     ((80.61, 55.40), (76.70, 69.06)),
+    // ];
+
     // Compute the distance too all segments and
     // find the minimum distance
     let min_distance_old = fixed_lines
@@ -245,12 +305,11 @@ fn read_data(filename: &str) -> Data {
 // Port from pytweening
 // A quadratic tween function that accelerates, reaches the midpoint, and then decelerates.
 // a "s-shaped" curve
-#[allow(dead_code)]
 fn ease_in_out_quad(t: f64) -> f64 {
     if t < 0.5 {
         2.0 * t.powi(2)
     } else {
-        let tmp = t.powi(2) - 1.0;
+        let tmp = t * 2.0 - 1.0;
         -0.5 * (tmp * (tmp - 2.0) - 1.0)
     }
 }
@@ -259,7 +318,7 @@ fn ease_in_out_quad(t: f64) -> f64 {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Name of the initial dataset
-    #[arg(short, long)]
+    #[arg(short, long, default_value = "data/seed_datasets/Datasaurus_data.csv")]
     dataset: String,
 
     // Name of the output file with a default value
@@ -274,9 +333,21 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     plot: bool,
 
+    // define a boolean flag to use uniform sampling
+    #[arg(short, long, default_value_t = false)]
+    uniform: bool,
+
+    // define a boolean flag to use gaussian sampling
+    #[arg(short, long, default_value_t = false)]
+    gaussian: bool,
+
     // log interval
     #[arg(short, long, default_value_t = 10000)]
     log_interval: u32,
+
+    // Number of decimals
+    #[arg(long, default_value_t = 2)]
+    decimals: i32,
 }
 
 fn main() {
@@ -284,13 +355,66 @@ fn main() {
     let args = Args::parse();
 
     let num_iterations = args.num_iterations;
-    let mut data = read_data(args.dataset.as_str());
+
+    let mut data: Data;
+
+    if args.uniform {
+        println!("Using uniform sampling");
+
+        let n_points = 1000;
+        let x_bounds = (20.0, 80.0);
+        let y_bounds = (20.0, 80.0);
+        // Sample n_points uniformly from the bounds
+        let mut rng = rand::thread_rng();
+
+        data = Data {
+            x: vec![0.0; n_points],
+            y: vec![0.0; n_points],
+        };
+
+        for i in 0..n_points {
+            data.x[i] = rng.gen_range(x_bounds.0..x_bounds.1);
+            data.y[i] = rng.gen_range(y_bounds.0..y_bounds.1);
+        }
+    } else if args.gaussian {
+        println!("Using gaussian sampling");
+
+        let n_points = 800;
+        let mean_x = 55.0;
+        let mean_y = 50.0;
+        let std_x = 16.0;
+        let std_y = 20.0;
+
+        data = Data {
+            x: vec![0.0; n_points],
+            y: vec![0.0; n_points],
+        };
+
+        // Sample n points using 2 Gaussians
+        let mut rng = rand::thread_rng();
+        let normal_x = Normal::new(mean_x, std_x).unwrap();
+        let normal_y = Normal::new(mean_y, std_y).unwrap();
+
+        for i in 0..n_points {
+            let x = rng.sample::<f32, _>(normal_x);
+            let y = rng.sample::<f32, _>(normal_y);
+
+            // Clip the values to the bounds
+            let x = x.max(1.0).min(98.0);
+            let y = y.max(1.0).min(98.0);
+
+            data.x[i] = x;
+            data.y[i] = y;
+        }
+    } else {
+        data = read_data(args.dataset.as_str());
+    }
 
     // Min/Max temperature
-    let min_temperature = 0.0001;
-    let max_temperature = 0.5;
+    let min_temperature: f64 = 0.00001;
+    let max_temperature: f64 = 0.5;
 
-    let decimals = 2;
+    let decimals: i32 = args.decimals;
 
     // Print info every n iterations
     let log_interval = args.log_interval;
@@ -310,13 +434,15 @@ fn main() {
     let show_plot = args.plot;
 
     for i in tqdm!(0..num_iterations) {
+        // for i in 0..num_iterations {
         // Compute the current temperature using a linear schedule
-        let temperature = max_temperature
-            - (max_temperature - min_temperature) * (i as f64 / num_iterations as f64);
+        // let temperature = max_temperature
+        //     - (max_temperature - min_temperature) * (i as f64 / num_iterations as f64);
 
         // Compute the current temperature using a quadratic schedule
-        // let temperature = min_temperature
-        //     + (max_temperature - min_temperature) * ease_in_out_quad(i as f64 / num_iterations as f64);
+        let temperature = min_temperature
+            + (max_temperature - min_temperature)
+                * ease_in_out_quad((num_iterations - i) as f64 / num_iterations as f64);
 
         // Perturb the data
         data = perturb_data(&best_data, temperature);
@@ -344,7 +470,14 @@ fn main() {
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),
-                    &[Caption(""), Color("black")],
+                    // change the pointtype and pointsize and opacity
+                    &[
+                        Caption(""),
+                        gnuplot::PointSymbol('O'),
+                        gnuplot::PointSize(1.5),
+                        Color("black"),
+                    ],
+                    // &[Caption(""), Color("black")],
                     // &[Caption("Best data"), Color("black")],
                 );
             fg.show_and_keep_running().unwrap();
