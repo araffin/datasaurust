@@ -283,6 +283,11 @@ struct Args {
     // Desired shape
     #[arg(long, default_value = "cat")]
     shape: String,
+
+    // Random seed when using Gaussian
+    // TODO: make the rest deterministic
+    #[arg(long, default_value_t = 42)]
+    seed: u64,
 }
 
 fn main() {
@@ -327,7 +332,7 @@ fn main() {
 
         // Sample n points using 2 Gaussians
         // use a fixed seed for reproducibility
-        let mut rng = rand::rngs::StdRng::seed_from_u64(42);
+        let mut rng = rand::rngs::StdRng::seed_from_u64(args.seed);
 
         let normal_x = Normal::new(mean_x, std_x).unwrap();
         let normal_y = Normal::new(mean_y, std_y).unwrap();
