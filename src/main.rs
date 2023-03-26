@@ -123,16 +123,14 @@ fn perturb_data(
     temperature: f64,
     allowed_distance: f32,
     fixed_lines: &[Line],
+    x_bounds: (f32, f32),
+    y_bounds: (f32, f32),
 ) -> Data {
     // Create a new data struct to store the perturbed data
     let mut new_data = Data {
         x: data.x.clone(),
         y: data.y.clone(),
     };
-
-    // Fixed boundaries for the data
-    let x_bounds = (0.0, 100.0);
-    let y_bounds = (0.0, 100.0);
 
     // Standard deviation for the gaussian noise
     let std_dev = 0.1;
@@ -305,13 +303,18 @@ fn main() {
     let num_iterations = args.num_iterations;
 
     let mut data: Data;
+    let offset_x: f32 = -54.92 + 7.04;
+    let offset_y: f32 = -50.34 + 19.94;
+    // Fixed boundaries for the data
+    let x_bounds = (0.0 + offset_x, 100.0 + offset_x);
+    let y_bounds = (0.0 + offset_y, 100.0 + offset_y);
 
     if args.uniform {
         println!("Using uniform sampling");
 
         let n_points = 1000;
-        let x_bounds = (20.0, 80.0);
-        let y_bounds = (20.0, 80.0);
+        let x_bounds_sample = (20.0, 80.0);
+        let y_bounds_sample = (20.0, 80.0);
         // Sample n_points uniformly from the bounds
         let mut rng = rand::thread_rng();
 
@@ -321,15 +324,15 @@ fn main() {
         };
 
         for i in 0..n_points {
-            data.x[i] = rng.gen_range(x_bounds.0..x_bounds.1);
-            data.y[i] = rng.gen_range(y_bounds.0..y_bounds.1);
+            data.x[i] = rng.gen_range(x_bounds_sample.0..x_bounds_sample.1);
+            data.y[i] = rng.gen_range(y_bounds_sample.0..y_bounds_sample.1);
         }
     } else if args.gaussian {
         println!("Using gaussian sampling");
 
         let n_points = 800;
-        let mean_x = 55.0;
-        let mean_y = 50.0;
+        let mean_x = 55.0 + offset_x;
+        let mean_y = 50.0 + offset_y;
         let std_x = 16.0;
         let std_y = 20.0;
 
@@ -350,8 +353,8 @@ fn main() {
             let y = rng.sample::<f32, _>(normal_y);
 
             // Clip the values to the bounds
-            let x = x.max(1.0).min(98.0);
-            let y = y.max(1.0).min(98.0);
+            let x = x.max(1.0 + offset_x).min(98.0 + offset_x);
+            let y = y.max(1.0 + offset_y).min(98.0 + offset_y);
 
             data.x[i] = x;
             data.y[i] = y;
@@ -392,7 +395,7 @@ fn main() {
         std::fs::create_dir(&log_folder).unwrap();
     }
 
-    let fixed_lines = get_shape(args.shape.as_str());
+    let fixed_lines = get_shape(args.shape.as_str(), offset_x, offset_y);
 
     for i in tqdm!(0..num_iterations) {
         // for i in 0..num_iterations {
@@ -406,7 +409,14 @@ fn main() {
                 * ease_in_out_quad((num_iterations - i) as f64 / num_iterations as f64);
 
         // Perturb the data
-        data = perturb_data(&best_data, temperature, args.allowed_distance, &fixed_lines);
+        data = perturb_data(
+            &best_data,
+            temperature,
+            args.allowed_distance,
+            &fixed_lines,
+            x_bounds,
+            y_bounds,
+        );
 
         // Check that after the perturbation the
         // statistics of the data are still within the bounds
@@ -443,8 +453,8 @@ fn main() {
                 .set_x_label("X", &[])
                 .set_y_label("Y", &[])
                 // set max and min values for the axes
-                .set_x_range(Fix(-20.0), Fix(130.0))
-                .set_y_range(Fix(-10.0), Fix(145.0))
+                .set_x_range(Fix(-20.0 + offset_x as f64), Fix(130.0 + offset_x as f64))
+                .set_y_range(Fix(-10.0 + offset_y as f64), Fix(145.0 + offset_y as f64))
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),

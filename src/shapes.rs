@@ -1,7 +1,7 @@
 use crate::types::Line;
 
 // Return the list of lines that define the shape
-pub fn get_shape(shape: &str) -> Vec<Line> {
+pub fn get_shape(shape: &str, offset_x: f32, offset_y: f32) -> Vec<Line> {
     // Segments defining a cross
     let cross = vec![((20.0, 0.0), (100.0, 100.0)), ((20.0, 100.0), (100.0, 0.0))];
 
@@ -93,11 +93,21 @@ pub fn get_shape(shape: &str) -> Vec<Line> {
         ((80.61, 55.40), (76.70, 69.06)),
     ];
 
-    match shape {
+    let mut lines = match shape {
         "cat" => cat,
         "cat_s" => cat_silhouette,
         "dog" => dog,
         "cross" => cross,
         _ => panic!("Unknown shape"),
+    };
+
+    // Offset the segments if needed
+    if offset_x != 0.0 || offset_y != 0.0 {
+        lines.iter_mut().for_each(|line| {
+            line.0 = (line.0 .0 + offset_x, line.0 .1 + offset_y);
+            line.1 = (line.1 .0 + offset_x, line.1 .1 + offset_y);
+        });
     }
+
+    lines
 }
