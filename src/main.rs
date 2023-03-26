@@ -631,8 +631,15 @@ fn main() {
         // }
     }
 
+    // Create log directory if it doesn't exist
+    let log_folder = format!("./logs/{}", args.shape);
+
+    if !std::path::Path::new(&log_folder).exists() {
+        std::fs::create_dir(&log_folder).unwrap();
+    }
+
     // Write the best data to a csv file
-    let mut output = std::fs::File::create(format!("./logs/{}.csv", args.output)).unwrap();
+    let mut output = std::fs::File::create(format!("{}/{}.csv", log_folder, args.output)).unwrap();
     for (x, y) in best_data.x.iter().zip(best_data.y.iter()) {
         writeln!(output, "{},{}", x, y).unwrap();
     }
