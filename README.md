@@ -1,5 +1,8 @@
 # DatasauRust
 
+Blazingly fast implementation of the [Datasaurus](http://www.autodeskresearch.com/papers/samestats) paper (500x faster than the original): "Same Stats, Different Graphs: Generating Datasets with Varied Appearance and Identical Statistics through Simulated Annealing" by Justin Matejka and George Fitzmaurice.
+
+To run with plot `-p` (using gnuplot):
 ```
 cargo run --release -- -d data/seed_datasets/Datasaurus_data.csv -p
 ```

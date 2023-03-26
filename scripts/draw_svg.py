@@ -1,3 +1,6 @@
+"""
+Utility script to retrieves lines from an svg.
+"""
 import pickle
 import sys
 from pathlib import Path
