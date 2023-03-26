@@ -26,8 +26,8 @@ Usage:
 # warnings.simplefilter(action="ignore", category=FutureWarning)
 # warnings.simplefilter(action="ignore", category=UserWarning)
 
-import itertools
 import math
+import pickle
 import sys
 
 import matplotlib as mpl
@@ -40,7 +40,6 @@ from docopt import docopt
 
 # from tqdm import tnrange, trange
 from tqdm.rich import tqdm
-import pickle
 
 # setting up the style for the charts
 sns.set_style("darkgrid")
@@ -92,11 +91,6 @@ initial_datasets = ["dino", "rando", "slant", "big_slant", "uniform"]
 with open("cat_lines.pkl", "rb") as f:
     cat_lines = pickle.load(f)
 
-# Format for rust
-# def format_point(point):
-#   return f"({point[0]:.2f}, {point[1]:.2f})"
-# print(f"({format_point(line[0])}, {format_point(line[1])})")
-
 
 #
 # these are the initial datasets which are used in the paper
@@ -137,7 +131,7 @@ def get_values(df):
     ym = df.y.mean()
     xsd = df.x.std()
     ysd = df.y.std()
-    pc = df.corr().x.y
+    df.corr().x.y
 
     # return [xm, ym, xsd, ysd, pc]
     return [xm, ym, xsd, ysd]
