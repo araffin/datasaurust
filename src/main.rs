@@ -303,11 +303,14 @@ fn main() {
     let num_iterations = args.num_iterations;
 
     let mut data: Data;
-    let offset_x: f32 = -54.92 + 7.04;
-    let offset_y: f32 = -50.34 + 19.94;
+    // let offset_x: f32 = -54.92 + 7.04;
+    // let offset_y: f32 = -50.34 + 19.94;
+    let offset_x: f32 = 0.0;
+    let offset_y: f32 = 0.0;
+
     // Fixed boundaries for the data
-    let x_bounds = (0.0 + offset_x, 100.0 + offset_x);
-    let y_bounds = (0.0 + offset_y, 100.0 + offset_y);
+    let x_bounds = (-20.0 + offset_x, 130.0 + offset_x);
+    let y_bounds = (-10.0 + offset_y, 145.0 + offset_y);
 
     if args.uniform {
         println!("Using uniform sampling");
@@ -453,8 +456,8 @@ fn main() {
                 .set_x_label("X", &[])
                 .set_y_label("Y", &[])
                 // set max and min values for the axes
-                .set_x_range(Fix(-20.0 + offset_x as f64), Fix(130.0 + offset_x as f64))
-                .set_y_range(Fix(-10.0 + offset_y as f64), Fix(145.0 + offset_y as f64))
+                .set_x_range(Fix(x_bounds.0 as f64), Fix(x_bounds.1 as f64))
+                .set_y_range(Fix(y_bounds.0 as f64), Fix(y_bounds.1 as f64))
                 .points(
                     best_data.x.iter(),
                     best_data.y.iter(),

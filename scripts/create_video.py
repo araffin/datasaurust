@@ -16,11 +16,11 @@ ffmpeg.input(f"{input_folder}*.png", pattern_type="glob", framerate=25).output(
 # video_clip.write_gif(f"{Path(output_video).parent}/{Path(output_video).stem}.gif")
 
 # Concatenate videos
-# input_paths = ["videos/gausian_cat.mp4", "videos/cat_dog.mp4"]
+# input_paths = ["videos/gausian_cat.mp4", "videos/cat_dog.mp4", "videos/dog_rabbit.mp4"]
 
 # with open("logs/concat.txt", "w") as f:
 #     f.writelines([("file %s\n" % input_path) for input_path in input_paths])
 
 # ffmpeg.input("logs/concat.txt", format="concat", safe=0).output(
-#     "logs/videos/infinite_loop.mp4", c="copy"
+#     "logs/videos/merged.mp4", c="copy"
 # ).run()

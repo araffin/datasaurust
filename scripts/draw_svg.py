@@ -36,13 +36,21 @@ lines = []
 # offset_y = 250
 
 # dog.svg
+# width = 25.2
+# height = 28.8
+# scale_x = 30
+# scale_y = 40
+# offset_x = 20
+# offset_y = 60
+
+
+# rabbit.svg
 width = 25.2
 height = 28.8
-scale_x = 30
-scale_y = 40
+scale_x = 50
+scale_y = 70
 offset_x = 20
-offset_y = 60
-
+offset_y = 40
 
 for element in xml_object.getElementsByTagName("path"):
     for path in parse_path(element.getAttribute("d")):
