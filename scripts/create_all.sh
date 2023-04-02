@@ -3,7 +3,7 @@
 # Output folder for videos
 video_folder=logs/videos_0
 mkdir -p $video_folder
-log_folders=(cat dog rabbit)
+log_folders=(cat dog rabbit whale)
 
 # Remove old logs
 for log_folder in "${log_folders[@]}"
@@ -11,17 +11,19 @@ do
     rm -r logs/$log_folder
 done
 
+default_args="-p --decimals 2 --allowed-distance 0.1 --log-interval 10000 --save-plots"
+
 # Create cat animation
-cargo run --release -- -p -n 1000000 --decimals 2 --shape cat --allowed-distance 0.1 --log-interval 10000 --gaussian --save-plots
+cargo run --release -- -n 1000000 --shape cat --gaussian $default_args
 
 # Create dog animation from last cat frame
-cargo run --release -- -p -n 1200000 --decimals 2 --shape dog --allowed-distance 0.1 --log-interval 10000 -d logs/cat/output.csv --save-plots
+cargo run --release -- -p -n 1200000 --shape dog -d logs/cat/output.csv $default_args
 
-# # Create rabbit animation from last dog frame
-cargo run --release -- -p -n 1200000 --decimals 2 --shape rabbit --allowed-distance 0.1 --log-interval 10000 -d logs/dog/output.csv --save-plots
+# # Create whale animation
+cargo run --release -- -p -n 1200000 --shape whale -d logs/dog/output.csv $default_args
 
-# Create horse animation from last rabbit frame
-# cargo run --release -- -p -n 1000000 --decimals 2 --shape horse --allowed-distance 0.1 --log-interval 10000 -d logs/rabbit/output.csv
+# Create rabiit animation
+cargo run --release -- -p -n 1200000 --shape rabbit -d logs/whale/output.csv $default_args
 
 
 # Create videos

@@ -5,12 +5,13 @@ import pickle
 import sys
 from pathlib import Path
 from xml.dom import minidom
+import yaml
 
 import matplotlib.pyplot as plt
 import numpy as np
 from svg.path import Line, parse_path
 
-filename = sys.argv[1]
+filename = Path(sys.argv[1])
 
 with open(filename) as f:
     svg_string = f.read()
@@ -19,38 +20,23 @@ xml_object = minidom.parseString(svg_string)
 
 lines = []
 
-# cat.svg
-# width = 500
-# height = 420
-# scale_x = 120
-# scale_y = 150
-# offset_x = -30
-# offset_y = 0
+name = filename.stem
 
-# cat2.svg
-# width = 25.2
-# height = 28.8
-# scale_x = 55
-# scale_y = 85
-# offset_x = -130
-# offset_y = 250
-
-# dog.svg
-# width = 25.2
-# height = 28.8
-# scale_x = 30
-# scale_y = 40
-# offset_x = 20
-# offset_y = 60
+# with open(f"data/{name}_lines.pkl", "wb") as f:
+#     pickle.dump(lines, f)
 
 
-# rabbit.svg
-width = 25.2
-height = 28.8
-scale_x = 50
-scale_y = 70
-offset_x = 20
-offset_y = 40
+# Read scaling config from yaml file
+with open(Path(__file__).parent / "config.yml") as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)[name]
+    # Convert each key to a float
+    config = {key: float(value) for key, value in config.items()}
+    width = config["width"]
+    height = config["height"]
+    scale_x = config["scale_x"]
+    scale_y = config["scale_y"]
+    offset_x = config["offset_x"]
+    offset_y = config["offset_y"]
 
 for element in xml_object.getElementsByTagName("path"):
     for path in parse_path(element.getAttribute("d")):
@@ -64,12 +50,6 @@ xml_object.unlink()
 lines = np.array(lines)
 lines[:, :, 0] = offset_x + scale_x * lines[:, :, 0] / width
 lines[:, :, 1] = offset_y + scale_y * ((height - lines[:, :, 1]) / height)
-
-
-name = Path(filename).stem
-
-with open(f"data/{name}_lines.pkl", "wb") as f:
-    pickle.dump(lines, f)
 
 
 # Format for rust

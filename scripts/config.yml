@@ -1,0 +1,48 @@
+# cat.svg
+cat:
+  width: 500
+  height: 420
+  scale_x: 120
+  scale_y: 150
+  offset_x: -30
+  offset_y: 0
+
+cat2:
+  width: 25.2
+  height: 28.8
+  scale_x: 55
+  scale_y: 85
+  offset_x: -130
+  offset_y: 250
+
+dog:
+  width: 25.2
+  height: 28.8
+  scale_x: 30
+  scale_y: 40
+  offset_x: 20
+  offset_y: 60
+
+rabbit:
+  width: 25.2
+  height: 28.8
+  scale_x: 50
+  scale_y: 70
+  offset_x: 20
+  offset_y: 40
+
+whale:
+  width: 25.2
+  height: 28.8
+  scale_x: 40
+  scale_y: 55
+  offset_x: 10
+  offset_y: 40
+
+penguin:
+  width: 25.2
+  height: 28.8
+  scale_x: 20
+  scale_y: 30
+  offset_x: 20
+  offset_y: 50
