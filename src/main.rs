@@ -40,6 +40,8 @@ fn compute_stats(data: &Data) -> (f32, f32, f32, f32) {
         std_y += (data.y[i] - mean_y).powi(2);
     }
 
+    // biased estimator of the variance
+    // use n - 1 instead of n to have unbiased estimator
     std_x = (std_x / data.x.len() as f32).sqrt();
     std_y = (std_y / data.y.len() as f32).sqrt();
 
@@ -362,6 +364,11 @@ fn main() {
             data.x[i] = x;
             data.y[i] = y;
         }
+
+        // Print stats
+        let (mean_x, mean_y, std_x, std_y) = compute_stats(&data);
+        println!("Mean x: {}, Mean y: {}", mean_x, mean_y);
+        println!("Std x: {}, Std y: {}", std_x, std_y);
 
         // let desired_std_y = 19.94;
         // // Loop over the random seed until we get the desired std
