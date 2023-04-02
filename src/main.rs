@@ -303,10 +303,10 @@ fn main() {
     let num_iterations = args.num_iterations;
 
     let mut data: Data;
-    // let offset_x: f32 = -54.92 + 7.04;
-    // let offset_y: f32 = -50.34 + 19.94;
-    let offset_x: f32 = 0.0;
-    let offset_y: f32 = 0.0;
+    let offset_x: f32 = -55.33 + 7.04;
+    let offset_y: f32 = -50.36 + 20.23;
+    // let offset_x: f32 = 0.0;
+    // let offset_y: f32 = 0.0;
 
     // Fixed boundaries for the data
     let x_bounds = (-20.0 + offset_x, 130.0 + offset_x);
@@ -362,6 +362,37 @@ fn main() {
             data.x[i] = x;
             data.y[i] = y;
         }
+
+        // let desired_std_y = 19.94;
+        // // Loop over the random seed until we get the desired std
+        // let mut seed = args.seed;
+        // let mut current_std_y = compute_stats(&data).3;
+
+        // while (current_std_y - desired_std_y).abs() > 0.005 {
+        //     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+
+        //     let normal_x = Normal::new(mean_x, std_x).unwrap();
+        //     let normal_y = Normal::new(mean_y, std_y).unwrap();
+
+        //     for i in 0..n_points {
+        //         let x = rng.sample::<f32, _>(normal_x);
+        //         let y = rng.sample::<f32, _>(normal_y);
+
+        //         // Clip the values to the bounds
+        //         let x = x.max(1.0 + offset_x).min(98.0 + offset_x);
+        //         let y = y.max(1.0 + offset_y).min(98.0 + offset_y);
+
+        //         data.x[i] = x;
+        //         data.y[i] = y;
+        //     }
+
+        //     current_std_y = compute_stats(&data).3;
+        //     println!("std_y: {}", current_std_y);
+        //     seed += 1;
+        // }
+        // println!("Seed: {}", seed - 1);
+        // // Exit
+        // return;
     } else {
         data = read_data(args.dataset.as_str());
     }
@@ -472,7 +503,7 @@ fn main() {
                     // &[Caption("Best data"), Color("black")],
                 )
                 .label(
-                    format!("X Mean: {:.decimals$}", mean_x, decimals = n_decimals).as_str(),
+                    format!("X Mean: 0{:.decimals$}", mean_x, decimals = n_decimals).as_str(),
                     Graph(label_x_pos),
                     Graph(label_y_pos),
                     &[gnuplot::Font("Monospace", 16.), gnuplot::TextColor("black")],
