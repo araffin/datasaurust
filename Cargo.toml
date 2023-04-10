@@ -10,7 +10,7 @@ documentation = "https://docs.rs/datasaurust"
 license = "MIT"
 readme = "README.md"
 categories = ["science", "visualization"]
-keywords = ["data", "science", "plot", "visualization", "statistics", "datasaurus"]
+keywords = ["data", "science", "plot", "visualization", "statistics"]
 exclude = [
     "scripts/*",
     "data/*",
