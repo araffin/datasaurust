@@ -12,6 +12,6 @@
 //!
 //! Interactive demo: <https://bqplot.github.io/bqplot-gallery/>
 
+pub mod optim;
 pub mod shapes;
 pub mod types;
-pub mod optim;

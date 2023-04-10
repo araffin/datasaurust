@@ -4,4 +4,5 @@ pub struct Data {
     pub y: Vec<f32>,
 }
 
+/// Struct that represents a segment of a line
 pub type Line = ((f32, f32), (f32, f32));

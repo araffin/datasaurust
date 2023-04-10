@@ -15,7 +15,7 @@ rm logs/videos_0/*
 default_args="-p --decimals 2 --allowed-distance 0.1 --log-interval 10000 --save-plots"
 
 # Create cat animation
-cargo run --release -- -n 1000000 --shape cat --gaussian --seed 281 $default_args
+cargo run --release -- -n 1000000 --shape cat --gaussian --seed 107 $default_args
 
 # Create dog animation from last cat frame
 cargo run --release -- -n 1400000 --shape dog -d logs/cat/output.csv $default_args

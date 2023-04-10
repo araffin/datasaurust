@@ -1,12 +1,3 @@
-// Rust implementation of the algorithm described in the paper:
-// Same Stats, Different Graphs: Generating Datasets with Varied Appearance and Identical Statistics
-// through Simulated Annealing
-// Justin Matejka and George Fitzmaurice
-// ACM CHI 2017
-// The paper, video, and associated code and datasets can be found on the Autodesk Research website:
-// https://www.autodesk.com/research/publications/same-stats-different-graphs
-// Interactive demo: https://bqplot.github.io/bqplot-gallery/
-
 use clap::Parser;
 use gnuplot::AxesCommon;
 use gnuplot::Fix;
@@ -17,9 +8,9 @@ use rand::SeedableRng;
 use rand_distr::Normal;
 use std::io::Write;
 
+use datasaurust::optim::*;
 use datasaurust::shapes::*;
 use datasaurust::types::*;
-use datasaurust::optim::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -93,10 +84,10 @@ fn main() {
     let num_iterations = args.num_iterations;
 
     let mut data: Data;
-    let offset_x: f32 = -55.33 + 7.04;
-    let offset_y: f32 = -50.36 + 20.23;
-    // let offset_x: f32 = 0.0;
-    // let offset_y: f32 = 0.0;
+    // let offset_x: f32 = -55.81 + 4.12;
+    // let offset_y: f32 = -49.63 + 20.23;
+    let offset_x: f32 = 0.0;
+    let offset_y: f32 = 0.0;
 
     // Fixed boundaries for the data
     let x_bounds = (-20.0 + offset_x, 130.0 + offset_x);
@@ -185,7 +176,7 @@ fn main() {
         //     println!("std_y: {}", current_std_y);
         //     seed += 1;
         // }
-        // println!("Seed: {}", seed - 1);
+        // println!("Seed: {}", seed);
         // // Exit
         // return;
     } else {
