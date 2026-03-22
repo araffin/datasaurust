@@ -212,7 +212,7 @@ fn main() {
     let log_folder = format!("./logs/{}", args.shape);
 
     if !std::path::Path::new(&log_folder).exists() {
-        std::fs::create_dir(&log_folder).unwrap();
+        std::fs::create_dir_all(&log_folder).unwrap();
     }
 
     let fixed_lines = get_shape(args.shape.as_str(), offset_x, offset_y);
